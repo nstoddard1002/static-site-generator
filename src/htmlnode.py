@@ -30,3 +30,19 @@ class HTMLNode():
                         return True
         
         return False
+
+class LeafNode(HTMLNode):
+    def __init__(self,tag=None,value=None,props=None):
+        super().__init__(tag=tag, value=value,props=props or {})
+    
+    def to_html(self):
+        if self.value == None:
+            raise ValueError
+        if self.tag == None:
+            return str(self.value)
+        html_string = "<" + str(self.tag)
+        if self.props:
+            for k,v in self.props.items():
+                html_string = html_string + " " + str(k) + "=\"" + str(v) + "\""
+        html_string = html_string + ">" + str(self.value) + "</" + str(self.tag) + ">"
+        return html_string

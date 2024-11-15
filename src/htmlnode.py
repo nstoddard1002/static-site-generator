@@ -1,3 +1,5 @@
+from textnode import TextNode, TextType
+
 class HTMLNode():
     def __init__(self,tag=None,value=None,children=None,props=None):
         self.tag = tag
@@ -86,3 +88,23 @@ class ParentNode(HTMLNode):
         html_string += "</" + str(self.tag) + ">"
         return html_string
 
+def text_node_to_html_node(textnode):
+    match textnode.text_type:
+        case textnode.text_type.NORMAL:
+            return LeafNode(tag=None,value=textnode.text)
+        case textnode.text_type.BOLD:
+            return LeafNode("b",textnode.text)
+        case textnode.text_type.ITALIC:
+            return LeafNode("i",textnode.text)
+        case textnode.text_type.CODE:
+            return LeafNode("code",textnode.text)
+        case textnode.text_type.LINK:
+            if textnode.url == None:
+                raise ValueError("Link must have URL")
+            return LeafNode("a", textnode.text,{"href":textnode.url})
+        case textnode.text_type.IMAGE:
+            if textnode.url == None:
+                raise ValueError("Image must have source URL")
+            return LeafNode("img","",{"src":textnode.url,"alt":textnode.text})
+        case _:
+            raise Exception("unexpected text_type")

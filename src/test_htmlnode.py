@@ -1,5 +1,7 @@
 import unittest
-from htmlnode import HTMLNode, LeafNode, ParentNode
+from enum import Enum
+from textnode import TextNode, TextType
+from htmlnode import HTMLNode, LeafNode, ParentNode, text_node_to_html_node
 
 class TestHTMLNode(unittest.TestCase):
     def test_eq(self):
@@ -18,6 +20,7 @@ class TestHTMLNode(unittest.TestCase):
         test_str = str(test_HTML.props_to_html())
         self.assertEqual(test_str,rubric_string)
     
+class TestLeafNode(unittest.TestCase):
     def test_leaf_properties(self):
         rubric_string = "<p>This is a paragraph of text</p>"
         test_leaf = LeafNode("p","This is a paragraph of text")
@@ -34,6 +37,7 @@ class TestHTMLNode(unittest.TestCase):
         with self.assertRaises(ValueError):
             LeafNode("p") #no value provided, should raise Value Error
 
+class TestParentNode(unittest.TestCase):
     #course material derived test
     def test_parent_properties(self):
         rubric_string = "<p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p>"
@@ -64,6 +68,56 @@ class TestHTMLNode(unittest.TestCase):
         child = LeafNode("p", "Content")
         test_parent = ParentNode("div", [child], props={"class": "container", "id": "main"})
         self.assertEqual(test_parent.to_html(), rubric_string)
+
+class TestTextNodeToHTMLNode(unittest.TestCase):
+    def test_normal_text(self):
+        textnode = TextNode("This is normal text", TextType.NORMAL)
+        html_node = text_node_to_html_node(textnode)
+        self.assertEqual(html_node,LeafNode(tag=None, value="This is normal text"))
+
+    def test_bold_text(self):
+        textnode = TextNode("This is bold text", TextType.BOLD)
+        html_node = text_node_to_html_node(textnode)
+        self.assertEqual(html_node,LeafNode("b", "This is bold text"))
+
+    def test_italic_text(self):
+        textnode = TextNode("This is italic text", TextType.ITALIC)
+        html_node = text_node_to_html_node(textnode)
+        self.assertEqual(html_node,LeafNode("i", "This is italic text"))
+
+    def test_code_text(self):
+        textnode = TextNode("This is code text", TextType.CODE)
+        html_node = text_node_to_html_node(textnode)
+        self.assertEqual(html_node,LeafNode("code", "This is code text"))
+
+    def test_link_text(self):
+        textnode = TextNode("Click me!", TextType.LINK, url="https://google.com")
+        html_node = text_node_to_html_node(textnode)
+        self.assertEqual(html_node,LeafNode("a","Click me!", {"href":"https://google.com"}))
+    
+    def test_image_text(self):
+        textnode = TextNode("An image", TextType.IMAGE, url="https://google.com/image.png")
+        html_node = text_node_to_html_node(textnode)
+        self.assertEqual(html_node,LeafNode("img","",{"src":"https://google.com/image.png","alt":"An image"}))
+
+    def test_link_missing_url(self):
+        textnode = TextNode("Click me!", TextType.LINK)
+        with self.assertRaises(ValueError):
+            text_node_to_html_node(textnode)
+    
+    def test_image_text_missing_url(self):
+        textnode = TextNode("An image", TextType.IMAGE)
+        with self.assertRaises(ValueError):
+            text_node_to_html_node(textnode)
+    
+    def test_unexpected_text_type(self):
+        class CustomTextType(Enum):
+            CUSTOM = "Custom text"
+        textnode = TextNode("Custom text", CustomTextType.CUSTOM)
+        with self.assertRaises(Exception):
+            text_node_to_html_node(textnode)
+    
+    
     
 
 

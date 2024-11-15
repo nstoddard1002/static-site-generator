@@ -10,8 +10,10 @@ class HTMLNode():
     
     def props_to_html(self):
         html_string = ""
-        for k,v in self.props.items():
-            html_string = html_string  + " " + str(k) +"="+str(v)
+        #insert the tag properties, if they exist
+        if self.props:
+            for k,v in self.props.items():
+                html_string += f" {k}={v}"
         return html_string
     
     def __repr__(self):
@@ -33,16 +35,54 @@ class HTMLNode():
 
 class LeafNode(HTMLNode):
     def __init__(self,tag=None,value=None,props=None):
+        # ensure that props is a dictionary even if none are passed
         super().__init__(tag=tag, value=value,props=props or {})
+        #LeafNodes must have a value
+        if self.value is None:
+            raise ValueError("LeafNode must have a value")
     
     def to_html(self):
-        if self.value == None:
-            raise ValueError
+        #if no tag, just return the value
         if self.tag == None:
             return str(self.value)
-        html_string = "<" + str(self.tag)
+        
+        #open the tag
+        html_string = f"<{self.tag}"
+        #insert the tag properties, if they exist
         if self.props:
             for k,v in self.props.items():
-                html_string = html_string + " " + str(k) + "=\"" + str(v) + "\""
-        html_string = html_string + ">" + str(self.value) + "</" + str(self.tag) + ">"
+                html_string += f" {k}=\"{v}\""
+        #add the value to the string and close the tag
+        html_string += f">{self.value}</{self.tag}>"
         return html_string
+
+class ParentNode(HTMLNode):
+    def __init__(self,tag,children,props=None):
+        # ensure that props is a dictionary even if none are passed
+        super().__init__(tag=tag,value=None,children=children,props=props or {})
+        #ParentNode must have children
+        if self.children is None:
+            raise ValueError("ParentNode must have children")
+        if not isinstance(self.children,list):
+            raise TypeError("Children must be a list of HTML objects")
+
+    def to_html(self):
+        if self.tag is None:
+            raise ValueError("ParentNode must have a tag")
+        
+        #open the tag
+        html_string = f"<{self.tag}"
+        
+        #add properties if they exist
+        if self.props:
+            for k,v in self.props.items():
+                html_string += f" {k}=\"{v}\""
+
+        #close the tag
+        html_string += ">"
+        #generate HTML for each child element
+        for child in self.children:
+            html_string += child.to_html()
+        html_string += "</" + str(self.tag) + ">"
+        return html_string
+

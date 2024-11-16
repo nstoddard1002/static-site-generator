@@ -139,8 +139,8 @@ class TestSplitImageNodes(unittest.TestCase):
     
     def test_multiple_nodes_with_single_images(self):
         nodes = [
-            TextNode("Here is an image: ![Sample Image](https://example.com/image.png)", TextType.NORMAL),
-            TextNode("Here is an image: ![Sample Image](https://example.com/image.png)", TextType.NORMAL)
+            TextNode("Here is an image: ![Sample Image](https://example.com/image.png)", TextType.NORMAL, url=None),
+            TextNode("Here is an image: ![Sample Image](https://example.com/image.png)", TextType.NORMAL, url=None)
         ]
         result = split_nodes_images(nodes)
         expected = [
@@ -233,6 +233,91 @@ class TestSplitLinkNodes(unittest.TestCase):
         ]
         self.assertEqual(result, expected)
 
+class TestTextToTextNodes(unittest.TestCase):
+    def test_plain_text(self):
+        text = "This is plain text."
+        result = text_to_textnodes(text)
+        expected = [TextNode("This is plain text.",TextType.NORMAL)]
+        self.assertEqual(result, expected)
+
+    def test_bold_text(self):
+        text = "This is **bold** text."
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("This is ", TextType.NORMAL),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" text.", TextType.NORMAL)
+        ]
+        self.assertEqual(result, expected)
+
+    def test_italic_text(self):
+        text = "This is *italic* text."
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("This is ", TextType.NORMAL),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" text.", TextType.NORMAL)
+        ]
+        self.assertEqual(result, expected)
+    
+    def test_code_text(self):
+        text = "This is `code` text."
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("This is ", TextType.NORMAL),
+            TextNode("code", TextType.CODE),
+            TextNode(" text.", TextType.NORMAL)
+        ]
+        self.assertEqual(result, expected)
+
+    def test_combined_bold_italic_text(self):
+        text = "This is **bold** and *italic* text."
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("This is ", TextType.NORMAL),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" and ", TextType.NORMAL),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" text.", TextType.NORMAL)
+        ]
+        self.assertEqual(result, expected)
+
+    def test_image_text(self):
+        text = "Here is an image: ![Sample Image](https://example.com/sample.png)"
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("Here is an image: ", TextType.NORMAL),
+            TextNode("Sample Image", TextType.IMAGE, "https://example.com/sample.png")
+        ]
+        self.assertEqual(result, expected)
+
+    def test_link_text(self):
+        text = "Check out this [link](https://example.com)."
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("Check out this ", TextType.NORMAL),
+            TextNode("link", TextType.LINK, "https://example.com"),
+            TextNode(".", TextType.NORMAL)
+        ]
+        self.assertEqual(result, expected)
+    
+    def test_combined_formatting(self):
+        text = "This is *italic*, **bold**, and `code` text as well as [a link](https://example.com) and ![an image](https://example.com/image.png)!!"
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("This is ", TextType.NORMAL),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(", ", TextType.NORMAL),
+            TextNode("bold", TextType.BOLD),
+            TextNode(", and ", TextType.NORMAL),
+            TextNode("code", TextType.CODE),
+            TextNode(" text as well as ", TextType.NORMAL),
+            TextNode("a link", TextType.LINK,"https://example.com"),
+            TextNode(" and ", TextType.NORMAL),
+            TextNode("an image", TextType.IMAGE, "https://example.com/image.png"),
+            TextNode("!!", TextType.NORMAL)
+        ]
+        self.assertEqual(result,expected)
 
 if __name__ == "__main__":
     unittest.main()

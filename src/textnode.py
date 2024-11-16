@@ -17,8 +17,10 @@ class TextNode():
         self.url = url
 
     def __eq__(self,other_text):
-        if (self.text_type == other_text.text_type) and (self.text == other_text.text) and (self.url == other_text.url):
-            return True
+        if self.text == other_text.text:
+            if self.text_type == other_text.text_type:
+                if self.url == other_text.url:
+                    return True
         return False
     
     def __repr__(self):
@@ -48,6 +50,33 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     
     return new_nodes
 
+def new_split_nodes_delimiter(old_nodes, delimiter, text_type):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.NORMAL:
+            new_nodes.append(old_node)
+            continue
+        remaining_text = old_node.text
+        while delimiter in remaining_text:
+            start = remaining_text.find(delimiter)
+            if start == -1:
+                break
+            end = remaining_text.find(delimiter, start + len(delimiter))
+            if end == -1:
+                new_nodes.append(TextNode(reamining_text, old_node.text_type))
+                remaining_text = ""
+                break
+            if start > 0:
+                new_nodes.append(TextNode(remaining_text[:start], old_node.text_type))
+            content = remaining_text[start + len(delimiter):end]
+            if content:
+                new_nodes.append(TextNode(content,text_type))
+            remaining_text = remaining_text[end + len(delimiter):]
+        if remaining_text:
+            new_nodes.append(TextNode(remaining_text, old_node.text_type))
+    return new_nodes
+
+
 def extract_markdown_images(text):
     image_list = []
     matches = re.findall(r"!\[([^[\]]*)\]\(([^\(\)]*)\)", text)
@@ -67,16 +96,22 @@ def extract_markdown_links(text):
 def split_nodes_images(old_nodes):
     new_nodes = []
     for old_node in old_nodes:
+        if old_node.text_type != TextType.NORMAL:
+            new_nodes.append(old_node)
+            continue
+        
         node_images = extract_markdown_images(old_node.text)
         remaining_text = old_node.text
-        for alt_text,image_url in node_images:
+        
+        for alt_text, image_url in node_images:
             full_image_syntax = f"![{alt_text}]({image_url})"
             before_image, _, after_image = remaining_text.partition(full_image_syntax)
 
             if before_image:
                 new_nodes.append(TextNode(before_image, old_node.text_type))
             
-            new_nodes.append(TextNode(alt_text, TextType.IMAGE, image_url))
+            image_node = TextNode(alt_text, TextType.IMAGE, url=image_url)
+            new_nodes.append(image_node)
 
             remaining_text = after_image
         
@@ -88,9 +123,14 @@ def split_nodes_images(old_nodes):
 def split_nodes_links(old_nodes):
     new_nodes = []
     for old_node in old_nodes:
+        if old_node.text_type != TextType.NORMAL:
+            new_nodes.append(old_node)
+            continue
+        
         node_links = extract_markdown_links(old_node.text)
         remaining_text = old_node.text
-        for link_text,link_url in node_links:
+ 
+        for link_text, link_url in node_links:
             full_link_syntax = f"[{link_text}]({link_url})"
             before_link, _, after_link = remaining_text.partition(full_link_syntax)
 
@@ -106,5 +146,17 @@ def split_nodes_links(old_nodes):
 
     return new_nodes
 
+def text_to_textnodes(text):
+    nodes = [TextNode(text,TextType.NORMAL,url=None)]
+    #process formatting delimiters
+    nodes = new_split_nodes_delimiter(nodes,"**",TextType.BOLD)
+    nodes = new_split_nodes_delimiter(nodes,"*",TextType.ITALIC)
+    nodes = new_split_nodes_delimiter(nodes,"`",TextType.CODE)
 
+    #process images and links
+    nodes = split_nodes_images(nodes)
+    nodes = split_nodes_links(nodes)
 
+    #remove empty TextNode entries
+    nodes = [node for node in nodes if node.text]
+    return nodes

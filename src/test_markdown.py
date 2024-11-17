@@ -64,5 +64,56 @@ class TestMarkdownToBlocks(unittest.TestCase):
         ]
         self.assertEqual(result, expected)
 
+class TestBlockToBlockType(unittest.TestCase):
+    def test_heading_block(self):
+        block = "# Heading"
+        result = block_to_blocktype(block)
+        self.assertEqual(result,"heading")
+    
+    def test_code_block(self):
+        block = "```\nprint('Hello, world!')\n```"
+        result = block_to_blocktype(block)
+        self.assertEqual(result,"code")
+
+    def test_quote_block(self):
+        block = ">This is a quote\n>Continued quote"
+        result = block_to_blocktype(block)
+        self.assertEqual(result,"quote")
+
+    def test_unordered_list_block(self):
+        block = "* Item 1\n* Item 2\n* Item 3"
+        result = block_to_blocktype(block)
+        self.assertEqual(result,"unordered list")
+
+    def test_unordered_list_alt_block(self):
+        block = "- Item 1\n- Item 2\n- Item 3"
+        result = block_to_blocktype(block)
+        self.assertEqual(result,"unordered list")
+
+    def test_unordered_list_mixed_block(self):
+        block = "* Item 1\n- Item 2\n* Item 3\n- Item 4"
+        result = block_to_blocktype(block)
+        self.assertEqual(result,"unordered list")
+
+    def test_ordered_list_block(self):
+        block = "1. First item\n2. Second item\n3. Third item"
+        result = block_to_blocktype(block)
+        self.assertEqual(result,"ordered list")
+
+    def test_paragraph_block(self):
+        block = "This is paragraph with multiple lines.\nThis is the second line."
+        result = block_to_blocktype(block)
+        self.assertEqual(result,"paragraph")
+
+    def test_wrong_heading_block(self):
+        block = "##There is no space after the # symbol"
+        result = block_to_blocktype(block)
+        self.assertEqual(result,"paragraph")
+    
+    def test_more_than_one_heading_block(self):
+        block = "# There is too many lines\n# Even if they are formatted correctly"
+        result = block_to_blocktype(block)
+        self.assertEqual(result,"paragraph")
+
 if __name__ == "__main__":
     unittest.main()

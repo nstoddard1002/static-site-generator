@@ -50,33 +50,6 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     
     return new_nodes
 
-def new_split_nodes_delimiter(old_nodes, delimiter, text_type):
-    new_nodes = []
-    for old_node in old_nodes:
-        if old_node.text_type != TextType.NORMAL:
-            new_nodes.append(old_node)
-            continue
-        remaining_text = old_node.text
-        while delimiter in remaining_text:
-            start = remaining_text.find(delimiter)
-            if start == -1:
-                break
-            end = remaining_text.find(delimiter, start + len(delimiter))
-            if end == -1:
-                new_nodes.append(TextNode(reamining_text, old_node.text_type))
-                remaining_text = ""
-                break
-            if start > 0:
-                new_nodes.append(TextNode(remaining_text[:start], old_node.text_type))
-            content = remaining_text[start + len(delimiter):end]
-            if content:
-                new_nodes.append(TextNode(content,text_type))
-            remaining_text = remaining_text[end + len(delimiter):]
-        if remaining_text:
-            new_nodes.append(TextNode(remaining_text, old_node.text_type))
-    return new_nodes
-
-
 def extract_markdown_images(text):
     image_list = []
     matches = re.findall(r"!\[([^[\]]*)\]\(([^\(\)]*)\)", text)
@@ -149,9 +122,9 @@ def split_nodes_links(old_nodes):
 def text_to_textnodes(text):
     nodes = [TextNode(text,TextType.NORMAL,url=None)]
     #process formatting delimiters
-    nodes = new_split_nodes_delimiter(nodes,"**",TextType.BOLD)
-    nodes = new_split_nodes_delimiter(nodes,"*",TextType.ITALIC)
-    nodes = new_split_nodes_delimiter(nodes,"`",TextType.CODE)
+    nodes = split_nodes_delimiter(nodes,"**",TextType.BOLD)
+    nodes = split_nodes_delimiter(nodes,"*",TextType.ITALIC)
+    nodes = split_nodes_delimiter(nodes,"`",TextType.CODE)
 
     #process images and links
     nodes = split_nodes_images(nodes)

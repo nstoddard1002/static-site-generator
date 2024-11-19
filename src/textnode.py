@@ -133,3 +133,11 @@ def text_to_textnodes(text):
     #remove empty TextNode entries
     nodes = [node for node in nodes if node.text]
     return nodes
+
+def extract_title(markdown):
+    markdown_lines = markdown.split("\n")
+    title_syntax = "# "
+    for markdown_line in markdown_lines:
+        if markdown_line[0:2] == title_syntax:
+            return markdown_line.lstrip("# ")
+

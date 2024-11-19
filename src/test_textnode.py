@@ -319,5 +319,23 @@ class TestTextToTextNodes(unittest.TestCase):
         ]
         self.assertEqual(result,expected)
 
+
+class TestExtractTitleHeading(unittest.TestCase):
+    def test_single_h1_heading(self):
+        markdown = "# This is the title\n\nThis is the first paragraph."
+        result = extract_title(markdown)
+        self.assertEqual(result, "This is the title")
+
+    def test_multiple_headings(self):
+        markdown = "# Title of the Document\n\n## Subheading\n\nAnother paragraph"
+        result = extract_title(markdown)
+        self.assertEqual(result,"Title of the Document")
+    
+    def test_heading_with_too_many_hashes(self):
+        markdown = "### Not an H1 Heading\n\n# Valid H1 Title\n\nMore text."
+        result = extract_title(markdown)
+        self.assertEqual(result,"Valid H1 Title")
+    
+
 if __name__ == "__main__":
     unittest.main()

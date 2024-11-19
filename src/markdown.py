@@ -7,7 +7,7 @@ class BlockType(Enum):
     PARAGRAPH = "paragraph"
     HEADING = "heading"
     CODE = "code"
-    QUOTE = "quote"
+    QUOTE = "blockquote"
     ULIST = "unordered list"
     OLIST = "ordered list"
 
@@ -32,7 +32,7 @@ def block_to_blocktype(block):
     elif re.match(code_start_pattern, block_lines[0]) and re.match(code_end_pattern, block_lines[-1]):
         return "code"
     elif all(re.match(quote_pattern, block_line) for block_line in block_lines):
-        return "quote"
+        return "blockquote"
     elif all(re.match(ulist_pattern, block_line) for block_line in block_lines):
         return "unordered list"
     elif all(re.match(olist_pattern, block_line) for block_line in block_lines):
@@ -67,9 +67,9 @@ def markdown_to_HTMLNode(markdown):
             code_lines = block.split("\n")[1:-1]
             code_content = "\n".join(code_lines)
             html_nodes.append(LeafNode("code",code_content))
-        elif block_type == "quote":
+        elif block_type == "blockquote":
             quote_content = " ".join(line.lstrip("> ") for line in block.split("\n"))
-            html_nodes.append(LeafNode("quote",quote_content))
+            html_nodes.append(LeafNode("blockquote",quote_content))
         elif block_type == "unordered list":
             list_items = []
             for line in block.split("\n"):

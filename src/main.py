@@ -3,10 +3,16 @@ from htmlnode import *
 from markdown import *
 from fileops import *
 from enum import Enum
+import os
+import shutil
+
 
 
 def main():
-	copy_static_to_public()
+	shutil.rmtree("public")
+	copy_files_to_new_directory("static","public")
+	generate_page("content/index.md","template.html","public")
+
 
 
 

@@ -9,9 +9,9 @@ import shutil
 
 
 def main():
-	shutil.rmtree("public")
-	copy_files_to_new_directory("static","public")
-	generate_page("content/index.md","template.html","public")
+	
+	generate_pages_recursive("content","template.html","public")
+	copy_static_to_public()
 
 
 

@@ -136,8 +136,9 @@ def text_to_textnodes(text):
 
 def extract_title(markdown):
     markdown_lines = markdown.split("\n")
-    title_syntax = "# "
+    title_syntax = "#"
     for markdown_line in markdown_lines:
-        if markdown_line[0:2] == title_syntax:
+        if markdown_line[0] == title_syntax:
             return markdown_line.lstrip("# ")
+    raise Exception("no h1 heading found")
 
